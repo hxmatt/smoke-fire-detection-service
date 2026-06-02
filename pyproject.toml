@@ -1,0 +1,18 @@
+[project]
+name = "smoke-fire-detection-service"
+version = "0.1.0"
+description = "A service for smoke and fire detection"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "seaborn>=0.13.2",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "jupyterlab>=4.5.7",
+]
