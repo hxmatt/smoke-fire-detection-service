@@ -15,4 +15,18 @@ dependencies = [
 dev = [
     "ipykernel>=7.2.0",
     "jupyterlab>=4.5.7",
+    "ruff>=0.15.0",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+extend-exclude = [".venv", "uv.lock"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort, UP: pyupgrade,
+# B: flake8-bugbear, SIM: flake8-simplify, C4: comprehensions
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4"]
+
+[tool.ruff.format]
+docstring-code-format = true
