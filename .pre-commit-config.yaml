@@ -1,0 +1,19 @@
+# Mirrors the CI workflow (.github/workflows/ci.yml): runs the same Ruff
+# checks locally before each commit, using the Ruff version pinned in uv.lock
+# (via `uv run`) so local and CI results always agree.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: ruff-format-check
+        name: ruff format --check
+        entry: uv run ruff format --check
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
