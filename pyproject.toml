@@ -3,7 +3,7 @@ name = "smoke-fire-detection-service"
 version = "0.1.0"
 description = "A service for smoke and fire detection"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
     "matplotlib>=3.10.9",
     "numpy>=2.4.6",
@@ -21,7 +21,7 @@ dev = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+target-version = "py311"
 extend-exclude = [".venv", "uv.lock"]
 
 [tool.ruff.lint]
