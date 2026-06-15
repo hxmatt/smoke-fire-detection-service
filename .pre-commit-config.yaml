@@ -17,3 +17,11 @@ repos:
         language: system
         types_or: [python, pyi]
         require_serial: true
+
+  # Strip notebook outputs so notebooks are versioned as source (no baked-in
+  # figures/logs -> small files, clean diffs). Run `pre-commit autoupdate` to
+  # bump `rev` to the latest release.
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout

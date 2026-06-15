@@ -206,6 +206,13 @@ tempCodeRunnerFile.py
 # Ruff stuff:
 .ruff_cache/
 
+# Project data & derived artifacts (downloaded dataset, model weights, splits)
+data/
+*.zip
+*.pt
+*.pth
+partition_criteria.json
+
 # PyPI configuration file
 .pypirc
 
