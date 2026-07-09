@@ -63,5 +63,9 @@ extend-exclude = [".venv", "uv.lock"]
 # B: flake8-bugbear, SIM: flake8-simplify, C4: comprehensions
 select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4"]
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's File/Form/Depends defaults are the intended pattern, not a bug.
+"src/api/*" = ["B008"]
+
 [tool.ruff.format]
 docstring-code-format = true
