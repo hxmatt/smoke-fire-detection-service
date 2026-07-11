@@ -1,0 +1,9 @@
+.git
+.venv
+weights
+data
+notebooks
+scripts
+**/__pycache__
+.ruff_cache
+.pre-commit-config.yaml
