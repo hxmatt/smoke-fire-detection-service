@@ -1,6 +1,6 @@
 """YOLO-to-torchvision dataset adapter for Faster R-CNN (analysis only).
 
-Converts YOLO-format labels (normalized ``cx cy w h``) into torchvisions
+Converts YOLO-format labels (normalized ``cx cy w h``) into torchvision's
 pixel ``xyxy`` targets, shifting class ids so 0 stays free for background.
 """
 
