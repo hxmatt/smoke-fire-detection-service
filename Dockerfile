@@ -1,5 +1,7 @@
 FROM python:3.13-slim
 
+LABEL org.opencontainers.image.source=https://github.com/hxmatt/smoke-fire-detection-service
+
 COPY --from=ghcr.io/astral-sh/uv:0.11.28 /uv /bin/uv
 
 # OpenCV shared libs (via ultralytics)

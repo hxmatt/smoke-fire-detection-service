@@ -15,6 +15,7 @@ models on request, and an analysis notebook that characterizes the dataset and e
 - [How it works](#how-it-works)
 - [Running the service](#running-the-service)
     - [Build the image](#build-the-image)
+    - [Pull the prebuilt image](#pull-the-prebuilt-image)
     - [Fetch the model weights](#fetch-the-model-weights)
     - [Start the container](#start-the-container)
     - [The API](#the-api)
@@ -75,6 +76,20 @@ The UI is a plain static page (hand-written HTML, CSS, and JS) served by the sam
 ## Running the service
 
 The service runs from the container image. The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
+
+### Pull the prebuilt image
+
+A prebuilt image is published to the repository's GitHub Container Registry, as an alternative to building from source. The package is private, so pulling needs read access to the 
+repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
+
+```bash
+docker pull ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+The pulled image is code-only, like a local build, so the weights step below still applies. Its tag is `ghcr.io/hxmatt/smoke-fire-detection-service:latest`; use that in place of 
+`smoke-fire-detection-service` when starting the container.
+
+Alternatively, you can build the image yourself, as mentioned below.
 
 ### Build the image
 
@@ -270,5 +285,5 @@ nothing from the notebook or training workflows.
 Torch comes from the `cpu` extra, since the service runs inference on CPU and the CUDA build would only add weight it never uses. The image also pulls in `libgl1` and `libglib2.0-0`, the 
 system libraries OpenCV loads at import time (OpenCV arrives indirectly through ultralytics).
 
-The image is built locally with the `docker build` command above; there is no registry-published image. The service reads the weights at runtime from the directory `WEIGHTS_DIR` points at, 
-which the image sets to `/weights`.
+The image is built locally with the `docker build` command above and pushed to the repository's container registry by hand; there is no CI/CD that publishes it. The service reads the 
+weights at runtime from the directory `WEIGHTS_DIR` points at, which the image sets to `/weights`.
