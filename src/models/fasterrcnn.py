@@ -30,7 +30,7 @@ def build_model(pretrained: bool = True, freeze_backbone: bool = True):
             train.
     """
     weights = "DEFAULT" if pretrained else None
-    model = fasterrcnn_mobilenet_v3_large_fpn(weights=weights)
+    model = fasterrcnn_mobilenet_v3_large_fpn(weights=weights, weights_backbone=None)
     predictor = cast(FastRCNNPredictor, model.roi_heads.box_predictor)
     in_features = predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, NUM_CLASSES)
