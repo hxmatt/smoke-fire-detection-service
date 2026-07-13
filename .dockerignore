@@ -1,6 +1,5 @@
 .git
 .venv
-weights
 data
 notebooks
 scripts
