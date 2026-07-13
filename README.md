@@ -120,7 +120,7 @@ The API is then served at `http://localhost:8000`, with the upload UI at `/`. Bu
 docker build -t smoke-fire-detection-service .
 ```
 
-## Start the container
+#### Start the container
 
 Mount `weights/` at `/weights`, where the service reads them from:
 
