@@ -17,6 +17,9 @@ RUN uv sync --frozen --no-install-project --no-default-groups --group service --
 
 COPY src ./src
 
+# Trained weights bundled in so the image runs with no mount or download.
+COPY weights /weights
+
 ENV WEIGHTS_DIR=/weights
 EXPOSE 8000
 CMD ["uv", "run", "--no-sync", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

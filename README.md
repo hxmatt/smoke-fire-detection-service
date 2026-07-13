@@ -14,9 +14,10 @@ models on request, and an analysis notebook that characterizes the dataset and e
 - [Repository layout](#repository-layout)
 - [How it works](#how-it-works)
 - [Running the service](#running-the-service)
-    - [Fetch the model weights](#fetch-the-model-weights)
     - [Pull the prebuilt image](#pull-the-prebuilt-image)
-    - [Build the image](#build-the-image)
+    - [Manually build the image](#manually-build-the-image)
+        - [Fetch the model weights](#fetch-the-model-weights)
+        - [Build the image](#build-the-image)
         - [Start the container](#start-the-container)
     - [The API](#the-api)
 - [Dataset](#dataset)
@@ -29,6 +30,8 @@ models on request, and an analysis notebook that characterizes the dataset and e
     - [PyTorch](#pytorch)
     - [Training](#training)
     - [Container image](#container-image)
+        - [Publishing the image](#publishing-the-image)
+        - [Publishing the image](#publishing-the-image)
 
 ## Overview
 
@@ -75,46 +78,44 @@ The UI is a plain static page (hand-written HTML, CSS, and JS) served by the sam
 
 ## Running the service
 
-The service runs from the container image; you can build the image yourself or pull the prebuilt one. Either solution requires you to fetch the model weights first, as described below.
+The service runs from the container image, which now ships with the model weights bundled in: pull the prebuilt image and run it, with nothing else to fetch or mount. You can also build the image yourself, which needs the weights on disk first.
 
-The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
-
-### Fetch the model weights
-
-The weights live outside the image and outside git, published as assets on the repository's [latest GitHub release](https://github.com/hxmatt/smoke-fire-detection-service/releases/latest).
-That keeps the image code-only and lets the weights change without a rebuild.
-
-The repository is private, so fetching the assets needs an authenticated [GitHub CLI](https://cli.github.com). Run `gh auth login` once, then pull the three `.pt` files into a local 
-`weights/` directory (same on macOS, Linux, and Windows):
-
-```bash
-gh release download --repo hxmatt/smoke-fire-detection-service --dir weights --pattern '*.pt'
-```
+The commands below use `docker`; Podman works the same.
 
 ### Pull the prebuilt image
 
-A prebuilt image is published to the repository's GitHub Container Registry, as an alternative to building from source. The package is private, so pulling needs read access to the 
-repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
+A prebuilt image is published to the repository's GitHub Container Registry, ready to run as-is. The package is private, so pulling needs read access to the repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
 
 ```bash
 docker pull ghcr.io/hxmatt/smoke-fire-detection-service:latest
 ```
 
-The pulled image is code-only, like a local build, so the [weights step](#fetch-the-model-weights) below still applies. Once the weights are in `weights/`, this runs the pulled image in full:
+The weights are bundled into the image, so it runs with no download and no mount:
 
 ```bash
-docker run --rm -p 8000:8000 -v "$PWD/weights:/weights" ghcr.io/hxmatt/smoke-fire-detection-service:latest
-```
-
-or
-
-```bash
-podman run --rm -p 8000:8000 -v "$PWD/weights:/weights:Z" ghcr.io/hxmatt/smoke-fire-detection-service:latest
+docker run --rm -p 8000:8000 ghcr.io/hxmatt/smoke-fire-detection-service:latest
 ```
 
 The API is then served at `http://localhost:8000`, with the upload UI at `/`. Building the image yourself is the alternative below.
 
-### Build the image
+### Manually build the image
+
+#### Fetch the model weights
+
+Building the image yourself needs the three `.pt` weight files on disk first; the prebuilt image above already contains them. They live outside git, published as assets on the repository's [latest GitHub release](https://github.com/hxmatt/smoke-fire-detection-service/releases/latest), so they can change without touching the source.
+
+The repository is private, so fetching the assets needs an authenticated [GitHub CLI](https://cli.github.com). Run `gh auth login` once, then pull the three `.pt` files into a local `weights/` directory (same on macOS, Linux, and 
+Windows):
+
+```bash
+gh release download --repo hxmatt/smoke-fire-detection-service --dir weights --pattern '*.pt'
+```
+
+The guide just below is meant for local building and testing. If, however, you want to prepare an image to be published, refer to [its relative section](#publishing-the-image).
+
+#### Build the image
+
+With the weights in `weights/`, build the image; the build copies them in, so the result runs the same as the prebuilt one, with no mount:
 
 ```bash
 docker build -t smoke-fire-detection-service .
@@ -122,19 +123,11 @@ docker build -t smoke-fire-detection-service .
 
 #### Start the container
 
-Mount `weights/` at `/weights`, where the service reads them from:
-
 ```bash
-docker run --rm -p 8000:8000 -v "$PWD/weights:/weights" smoke-fire-detection-service
+docker run --rm -p 8000:8000 smoke-fire-detection-service
 ```
 
 The API is then served at `http://localhost:8000`, with the upload UI at `/`.
-
-On SELinux hosts (Fedora, RHEL) using Podman, add the `:Z` relabel suffix so the container can read the mounted weights:
-
-```bash
-podman run --rm -p 8000:8000 -v "$PWD/weights:/weights:Z" smoke-fire-detection-service
-```
 
 ### The API
 
@@ -296,5 +289,25 @@ nothing from the notebook or training workflows.
 Torch comes from the `cpu` extra, since the service runs inference on CPU and the CUDA build would only add weight it never uses. The image also pulls in `libgl1` and `libglib2.0-0`, the 
 system libraries OpenCV loads at import time (OpenCV arrives indirectly through ultralytics).
 
-The image is built locally with the `docker build` command above and pushed to the repository's container registry by hand; there is no CI/CD that publishes it. The service reads the 
-weights at runtime from the directory `WEIGHTS_DIR` points at, which the image sets to `/weights`.
+The image is pushed to the repository's container registry by hand; there is no CI/CD that publishes it. The build copies the trained weights into the image at `/weights`, where `WEIGHTS_DIR` points, so the container runs with no mount or download. The weights stay versioned as release assets; refreshing them means rebuilding the image.
+
+#### Publishing the image
+
+Pushing needs Docker authenticated to GHCR with a personal access token that has the `write:packages` scope:
+
+```bash
+docker login ghcr.io
+```
+
+Publishing pins the [platform](https://docs.docker.com/build/building/multi-platform/) to `linux/amd64`, so the pushed image is the same regardless of the build host (e.g. an Apple Silicon machine):
+
+```bash
+docker build --platform linux/amd64 \
+  -t ghcr.io/hxmatt/smoke-fire-detection-service:latest .
+```
+
+Then push it:
+
+```bash
+docker push ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
