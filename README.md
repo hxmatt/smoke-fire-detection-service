@@ -14,10 +14,10 @@ models on request, and an analysis notebook that characterizes the dataset and e
 - [Repository layout](#repository-layout)
 - [How it works](#how-it-works)
 - [Running the service](#running-the-service)
+    - [Fetch the model weights](#fetch-the-model-weights)
     - [Pull the prebuilt image](#pull-the-prebuilt-image)
     - [Build the image](#build-the-image)
-    - [Fetch the model weights](#fetch-the-model-weights)
-    - [Start the container](#start-the-container)
+        - [Start the container](#start-the-container)
     - [The API](#the-api)
 - [Dataset](#dataset)
 - [The analysis notebook](#the-analysis-notebook)
@@ -75,7 +75,21 @@ The UI is a plain static page (hand-written HTML, CSS, and JS) served by the sam
 
 ## Running the service
 
-The service runs from the container image. The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
+The service runs from the container image; you can build the image yourself or pull the prebuilt one. Either solution requires you to fetch the model weights first, as described below.
+
+The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
+
+### Fetch the model weights
+
+The weights live outside the image and outside git, published as assets on the repository's [latest GitHub release](https://github.com/hxmatt/smoke-fire-detection-service/releases/latest).
+That keeps the image code-only and lets the weights change without a rebuild.
+
+The repository is private, so fetching the assets needs an authenticated [GitHub CLI](https://cli.github.com). Run `gh auth login` once, then pull the three `.pt` files into a local 
+`weights/` directory (same on macOS, Linux, and Windows):
+
+```bash
+gh release download --repo hxmatt/smoke-fire-detection-service --dir weights --pattern '*.pt'
+```
 
 ### Pull the prebuilt image
 
@@ -106,19 +120,7 @@ The API is then served at `http://localhost:8000`, with the upload UI at `/`. Bu
 docker build -t smoke-fire-detection-service .
 ```
 
-### Fetch the model weights
-
-The weights live outside the image and outside git, published as assets on the repository's [latest GitHub release](https://github.com/hxmatt/smoke-fire-detection-service/releases/latest).
-That keeps the image code-only and lets the weights change without a rebuild.
-
-The repository is private, so fetching the assets needs an authenticated [GitHub CLI](https://cli.github.com). Run `gh auth login` once, then pull the three `.pt` files into a local 
-`weights/` directory (same on macOS, Linux, and Windows):
-
-```bash
-gh release download --repo hxmatt/smoke-fire-detection-service --dir weights --pattern '*.pt'
-```
-
-### Start the container
+## Start the container
 
 Mount `weights/` at `/weights`, where the service reads them from:
 
