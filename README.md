@@ -14,10 +14,10 @@ models on request, and an analysis notebook that characterizes the dataset and e
 - [Repository layout](#repository-layout)
 - [How it works](#how-it-works)
 - [Running the service](#running-the-service)
+    - [Fetch the model weights](#fetch-the-model-weights)
     - [Pull the prebuilt image](#pull-the-prebuilt-image)
     - [Build the image](#build-the-image)
-    - [Fetch the model weights](#fetch-the-model-weights)
-    - [Start the container](#start-the-container)
+        - [Start the container](#start-the-container)
     - [The API](#the-api)
 - [Dataset](#dataset)
 - [The analysis notebook](#the-analysis-notebook)
@@ -75,27 +75,9 @@ The UI is a plain static page (hand-written HTML, CSS, and JS) served by the sam
 
 ## Running the service
 
-The service runs from the container image. The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
+The service runs from the container image; you can build the image yourself or pull the prebuilt one. Either solution requires you to fetch the model weights first, as described below.
 
-### Pull the prebuilt image
-
-A prebuilt image is published to the repository's GitHub Container Registry, as an alternative to building from source. The package is private, so pulling needs read access to the 
-repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
-
-```bash
-docker pull ghcr.io/hxmatt/smoke-fire-detection-service:latest
-```
-
-The pulled image is code-only, like a local build, so the weights step below still applies. Its tag is `ghcr.io/hxmatt/smoke-fire-detection-service:latest`; use that in place of 
-`smoke-fire-detection-service` when starting the container.
-
-Alternatively, you can build the image yourself, as mentioned below.
-
-### Build the image
-
-```bash
-docker build -t smoke-fire-detection-service .
-```
+The commands below use `docker`; Podman works the same, with one note for SELinux hosts at the end.
 
 ### Fetch the model weights
 
@@ -109,7 +91,36 @@ The repository is private, so fetching the assets needs an authenticated [GitHub
 gh release download --repo hxmatt/smoke-fire-detection-service --dir weights --pattern '*.pt'
 ```
 
-### Start the container
+### Pull the prebuilt image
+
+A prebuilt image is published to the repository's GitHub Container Registry, as an alternative to building from source. The package is private, so pulling needs read access to the 
+repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
+
+```bash
+docker pull ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+The pulled image is code-only, like a local build, so the [weights step](#fetch-the-model-weights) below still applies. Once the weights are in `weights/`, this runs the pulled image in full:
+
+```bash
+docker run --rm -p 8000:8000 -v "$PWD/weights:/weights" ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+or
+
+```bash
+podman run --rm -p 8000:8000 -v "$PWD/weights:/weights:Z" ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+The API is then served at `http://localhost:8000`, with the upload UI at `/`. Building the image yourself is the alternative below.
+
+### Build the image
+
+```bash
+docker build -t smoke-fire-detection-service .
+```
+
+## Start the container
 
 Mount `weights/` at `/weights`, where the service reads them from:
 
