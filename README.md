@@ -86,10 +86,19 @@ repository or package, with Docker logged in to GHCR (`docker login ghcr.io`):
 docker pull ghcr.io/hxmatt/smoke-fire-detection-service:latest
 ```
 
-The pulled image is code-only, like a local build, so the weights step below still applies. Its tag is `ghcr.io/hxmatt/smoke-fire-detection-service:latest`; use that in place of 
-`smoke-fire-detection-service` when starting the container.
+The pulled image is code-only, like a local build, so the [weights step](#fetch-the-model-weights) below still applies. Once the weights are in `weights/`, this runs the pulled image in full:
 
-Alternatively, you can build the image yourself, as mentioned below.
+```bash
+docker run --rm -p 8000:8000 -v "$PWD/weights:/weights" ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+or
+
+```bash
+podman run --rm -p 8000:8000 -v "$PWD/weights:/weights:Z" ghcr.io/hxmatt/smoke-fire-detection-service:latest
+```
+
+The API is then served at `http://localhost:8000`, with the upload UI at `/`. Building the image yourself is the alternative below.
 
 ### Build the image
 
