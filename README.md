@@ -31,7 +31,6 @@ models on request, and an analysis notebook that characterizes the dataset and e
     - [Training](#training)
     - [Container image](#container-image)
         - [Publishing the image](#publishing-the-image)
-        - [Publishing the image](#publishing-the-image)
 
 ## Overview
 
