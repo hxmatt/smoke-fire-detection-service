@@ -1,6 +1,7 @@
 # Smoke & Fire Detection Service
 
 [![CI](https://github.com/hxmatt/smoke-fire-detection-service/actions/workflows/ci.yml/badge.svg)](https://github.com/hxmatt/smoke-fire-detection-service/actions/workflows/ci.yml)
+[![CD](https://github.com/hxmatt/smoke-fire-detection-service/actions/workflows/cd.yml/badge.svg)](https://github.com/hxmatt/smoke-fire-detection-service/actions/workflows/cd.yml)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
@@ -288,17 +289,19 @@ nothing from the notebook or training workflows.
 Torch comes from the `cpu` extra, since the service runs inference on CPU and the CUDA build would only add weight it never uses. The image also pulls in `libgl1` and `libglib2.0-0`, the 
 system libraries OpenCV loads at import time (OpenCV arrives indirectly through ultralytics).
 
-The image is pushed to the repository's container registry by hand; there is no CI/CD that publishes it. The build copies the trained weights into the image at `/weights`, where `WEIGHTS_DIR` points, so the container runs with no mount or download. The weights stay versioned as release assets; refreshing them means rebuilding the image.
+A GitHub Actions workflow publishes the image to the repository's container registry (see [Publishing the image](#publishing-the-image)). The build copies the trained weights into the image at `/weights`, where `WEIGHTS_DIR` points, so the container runs with no mount or download. The weights stay versioned as release assets; changing them means a rebuild, which the next workflow run does.
 
 #### Publishing the image
 
-Pushing needs Docker authenticated to GHCR with a personal access token that has the `write:packages` scope:
+`.github/workflows/cd.yml` builds and pushes the image on every push to `main` (PR merges included), and on demand from the Actions tab. It pulls the weights from the latest release, builds, and pushes to GHCR. The workflow signs in with the built-in `GITHUB_TOKEN` (`packages: write`), so there is nothing to set up.
+
+Publishing by hand runs the same steps. First authenticate to GHCR with a personal access token that has the `write:packages` scope:
 
 ```bash
 docker login ghcr.io
 ```
 
-Publishing pins the [platform](https://docs.docker.com/build/building/multi-platform/) to `linux/amd64`, so the pushed image is the same regardless of the build host (e.g. an Apple Silicon machine):
+Build with the [platform](https://docs.docker.com/build/building/multi-platform/) pinned to `linux/amd64`, so the image is the same whatever the build host (e.g. an Apple Silicon machine):
 
 ```bash
 docker build --platform linux/amd64 \
